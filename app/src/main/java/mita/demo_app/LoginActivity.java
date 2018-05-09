@@ -27,7 +27,7 @@ import butterknife.OnClick;
  */
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String TAG = "SignInActivity";
+    private static final String TAG = "LoginActivity";
 
     private FirebaseAuth mAuth;
 
