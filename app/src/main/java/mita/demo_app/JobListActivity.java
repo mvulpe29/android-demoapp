@@ -23,6 +23,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnTouch;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class JobListActivity extends AppCompatActivity {
 
@@ -55,23 +58,43 @@ public class JobListActivity extends AppCompatActivity {
         mAdapter = new JobAdapter(jobList);
         mRecyclerView.setAdapter(mAdapter);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("jobs");
-        mDatabase.addValueEventListener(new ValueEventListener() {
+//        mDatabase = FirebaseDatabase.getInstance().getReference("jobs");
+//        mDatabase.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                jobList.clear();
+//                for (DataSnapshot jobSnapshot: dataSnapshot.getChildren()) {
+//                    Job newJob = jobSnapshot.getValue(Job.class);
+//                    jobList.add(newJob);
+//                }
+//                mAdapter.notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                // Getting Post failed, log a message
+//                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+//                // ...
+//            }
+//        });
+
+        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+
+        Call<List<Job>> call = apiService.getJobs();
+        call.enqueue(new Callback<List<Job>>() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                jobList.clear();
-                for (DataSnapshot jobSnapshot: dataSnapshot.getChildren()) {
-                    Job newJob = jobSnapshot.getValue(Job.class);
-                    jobList.add(newJob);
+            public void onResponse(Call<List<Job>>call, Response<List<Job>> response) {
+                List<Job> newJobList = response.body();
+                for(Job job: newJobList){
+                    jobList.add(job);
                 }
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
+            public void onFailure(Call<List<Job>>call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
             }
         });
 

@@ -12,8 +12,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class JobDetailActivity extends AppCompatActivity {
 
@@ -38,13 +43,35 @@ public class JobDetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String jobID = intent.getStringExtra("jobID");
 
-        DatabaseReference mJobReference = FirebaseDatabase.getInstance().getReference("jobs").child(jobID);
+//        DatabaseReference mJobReference = FirebaseDatabase.getInstance().getReference("jobs").child(jobID);
+//
+//        ValueEventListener jobListener = new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // Get Post object and use the values to update the UI
+//                currentJob = dataSnapshot.getValue(Job.class);
+//                idTextView.setText(currentJob.getId());
+//                fromTextView.setText(currentJob.getFrom());
+//                toTextView.setText(currentJob.getTo());
+//                statusTextView.setText(currentJob.getStatus());
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                // Getting Post failed, log a message
+//                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+//                // ...
+//            }
+//        };
+//        mJobReference.addValueEventListener(jobListener);
 
-        ValueEventListener jobListener = new ValueEventListener() {
+        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+
+        Call<Job> call = apiService.getJobDetails(jobID);
+        call.enqueue(new Callback<Job>() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                currentJob = dataSnapshot.getValue(Job.class);
+            public void onResponse(Call<Job>call, Response<Job> response) {
+                currentJob = response.body();
                 idTextView.setText(currentJob.getId());
                 fromTextView.setText(currentJob.getFrom());
                 toTextView.setText(currentJob.getTo());
@@ -52,13 +79,11 @@ public class JobDetailActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
+            public void onFailure(Call<Job>call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
             }
-        };
-        mJobReference.addValueEventListener(jobListener);
+        });
 
     }
 
